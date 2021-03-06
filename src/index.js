@@ -1,4 +1,5 @@
 const fs = require('fs').promises;
+const path = require('path');
 const typescript = require('typescript');
 const stripComments = require('strip-comments');
 
@@ -33,38 +34,38 @@ const hasDecorator = (fileContent, offset = 0) => {
   return true;
 };
 
-module.exports = (
-  options = { tsconfigPath: './tsconfig.json', force: false, tsx: true }
-) => ({
+module.exports = (options = {}) => ({
   name: 'tsc',
   setup(build) {
+    const tsconfigPath =
+      options.tsconfigPath ?? path.join(process.cwd(), './tsconfig.json');
+    const forceTsc = options.force ?? false;
+    const tsx = options.tsx ?? true;
+
     let tsconfigRaw = null;
 
-    build.onLoad(
-      { filter: options.tsx ? /\.tsx?$/ : /\.ts$/ },
-      async (args) => {
-        if (!tsconfigRaw) {
-          tsconfigRaw = JSON.parse(
-            stripComments(await fs.readFile(tsconfigPath, 'utf8')) || null
-          );
-          if (tsconfigRaw.sourcemap) {
-            tsconfigRaw.sourcemap = false;
-            tsconfigRaw.inlineSources = true;
-            tsconfigRaw.inlineSourceMap = true;
-          }
-        }
-
-        const ts = await fs.readFile(args.path, 'utf8');
-        if (
-          options.force ||
-          (tsconfigRaw.compilerOptions &&
-            tsconfigRaw.compilerOptions.emitDecoratorMetadata &&
-            hasDecorator(ts))
-        ) {
-          const program = typescript.transpileModule(ts, tsconfigRaw);
-          return { contents: program.outputText };
+    build.onLoad({ filter: tsx ? /\.tsx?$/ : /\.ts$/ }, async (args) => {
+      if (!tsconfigRaw) {
+        tsconfigRaw = JSON.parse(
+          stripComments(await fs.readFile(tsconfigPath, 'utf8')) || null
+        );
+        if (tsconfigRaw.sourcemap) {
+          tsconfigRaw.sourcemap = false;
+          tsconfigRaw.inlineSources = true;
+          tsconfigRaw.inlineSourceMap = true;
         }
       }
-    );
+
+      const ts = await fs.readFile(args.path, 'utf8');
+      if (
+        forceTsc ||
+        (tsconfigRaw.compilerOptions &&
+          tsconfigRaw.compilerOptions.emitDecoratorMetadata &&
+          hasDecorator(ts))
+      ) {
+        const program = typescript.transpileModule(ts, tsconfigRaw);
+        return { contents: program.outputText };
+      }
+    });
   },
 });
