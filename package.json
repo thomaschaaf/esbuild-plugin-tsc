@@ -1,0 +1,36 @@
+{
+  "name": "esbuild-plugin-tsc",
+  "version": "0.0.1",
+  "description": "An esbuild plugin which uses tsc to compile typescript files.",
+  "main": "src/index.js",
+  "types": "./types.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/thomaschaaf/esbuild-plugin-tsc.git"
+  },
+  "keywords": [
+    "esbuild",
+    "esbuild-plugin",
+    "tsc",
+    "typescript"
+  ],
+  "author": "Thomas Schaaf <schaaf@komola.de>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/thomaschaaf/esbuild-plugin-tsc/issues"
+  },
+  "homepage": "https://github.com/thomaschaaf/esbuild-plugin-tsc#readme",
+  "dependencies": {
+    "strip-comments": "^2.0.1"
+  },
+  "devDependencies": {
+    "prettier": "^2.2.1",
+    "typescript": "^4.2.3"
+  },
+  "peerDependencies": {
+    "typescript": "^4.0.0"
+  }
+}
