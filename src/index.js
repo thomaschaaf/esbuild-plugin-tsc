@@ -3,38 +3,16 @@ const path = require('path');
 const typescript = require('typescript');
 const stripComments = require('strip-comments');
 
-const hasDecorator = (fileContent, offset = 0) => {
-  let cleanedFileContents = fileContent;
+const { inspect } = require('util');
 
-  if (offset === 0) {
-    // check if file contains an @ at all
-    if (fileContent.indexOf('@', offset) === -1) {
-      return false;
-    }
+const theFinder = new RegExp(
+  /((?<![\(\s]\s*['"])@\w*[\w\d]\s*(?![;])[\((?=\s)])/
+);
 
-    // strip comments which could contain @
-    cleanedFileContents = stripComments(fileContent);
-  }
+const findDecorators = (fileContent) =>
+  theFinder.test(stripComments(fileContent));
 
-  const atPosition = cleanedFileContents.indexOf('@', offset);
-
-  if (atPosition === -1) {
-    return false;
-  }
-
-  if (atPosition === 0) {
-    return true;
-  }
-
-  // ignore "@ and '@ as they are used in require('@org/repo')
-  if (["'", '"'].includes(cleanedFileContents.substr(atPosition - 1, 1))) {
-    return hasDecorator(cleanedFileContents, atPosition + 1);
-  }
-
-  return true;
-};
-
-module.exports = (options = {}) => ({
+const esbuildPluginTsc = (options = {}) => ({
   name: 'tsc',
   setup(build) {
     const tsconfigPath =
@@ -42,30 +20,88 @@ module.exports = (options = {}) => ({
     const forceTsc = options.force ?? false;
     const tsx = options.tsx ?? true;
 
-    let tsconfigRaw = null;
+    let parsedTsConfig = null;
 
     build.onLoad({ filter: tsx ? /\.tsx?$/ : /\.ts$/ }, async (args) => {
-      if (!tsconfigRaw) {
-        tsconfigRaw = JSON.parse(
-          stripComments(await fs.readFile(tsconfigPath, 'utf8')) || null
-        );
-        if (tsconfigRaw.sourcemap) {
-          tsconfigRaw.sourcemap = false;
-          tsconfigRaw.inlineSources = true;
-          tsconfigRaw.inlineSourceMap = true;
+      if (!parsedTsConfig) {
+        parsedTsConfig = parseTsConfig(tsconfigPath, process.cwd());
+        if (parsedTsConfig.sourcemap) {
+          parsedTsConfig.sourcemap = false;
+          parsedTsConfig.inlineSources = true;
+          parsedTsConfig.inlineSourceMap = true;
         }
       }
 
-      const ts = await fs.readFile(args.path, 'utf8');
+      // Just return if we don't need to search the file.
       if (
-        forceTsc ||
-        (tsconfigRaw.compilerOptions &&
-          tsconfigRaw.compilerOptions.emitDecoratorMetadata &&
-          hasDecorator(ts))
+        !forceTsc &&
+        (!parsedTsConfig ||
+          !parsedTsConfig.options ||
+          !parsedTsConfig.options.emitDecoratorMetadata)
       ) {
-        const program = typescript.transpileModule(ts, tsconfigRaw);
-        return { contents: program.outputText };
+        return;
       }
+
+      const ts = await fs
+        .readFile(args.path, 'utf8')
+        .catch((err) => printDiagnostics({ file: args.path, err }));
+
+      // Find the decorator and if there isn't one, return out
+      const hasDecorator = findDecorators(ts);
+      if (!hasDecorator) {
+        return;
+      }
+
+      const program = typescript.transpileModule(ts, parsedTsConfig);
+      return { contents: program.outputText };
     });
   },
 });
+
+function parseTsConfig(tsconfig, cwd = process.cwd()) {
+  const fileName = typescript.findConfigFile(
+    cwd,
+    typescript.sys.fileExists,
+    tsconfig
+  );
+
+  // if the value was provided, but no file, fail hard
+  if (tsconfig !== undefined && !fileName)
+    throw new Error(`failed to open '${fileName}'`);
+
+  let loadedConfig = {};
+  let baseDir = cwd;
+  let configFileName;
+  if (fileName) {
+    const text = typescript.sys.readFile(fileName);
+    if (text === undefined) throw new Error(`failed to read '${fileName}'`);
+
+    const result = typescript.parseConfigFileTextToJson(fileName, text);
+
+    if (result.error !== undefined) {
+      printDiagnostics(result.error);
+      throw new Error(`failed to parse '${fileName}'`);
+    }
+
+    loadedConfig = result.config;
+    baseDir = path.dirname(fileName);
+    configFileName = fileName;
+  }
+
+  const parsedTsConfig = typescript.parseJsonConfigFileContent(
+    loadedConfig,
+    typescript.sys,
+    baseDir
+  );
+
+  if (parsedTsConfig.errors[0]) printDiagnostics(parsedTsConfig.errors);
+
+  return parsedTsConfig;
+}
+
+function printDiagnostics(...args) {
+  console.log(inspect(args, false, 10, true));
+}
+
+const thisModule = (module.exports = esbuildPluginTsc);
+thisModule.esbuildPluginTsc = esbuildPluginTsc;
