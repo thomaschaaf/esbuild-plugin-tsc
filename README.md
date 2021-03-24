@@ -19,13 +19,26 @@ If for some reason you want to use typescripts compiler for all files you can si
 
 2. Add this plugin to your esbuild build script:
 
+   Javascript:
    ```diff
-   +const EsbuildPluginTsc = require('esbuild-plugin-tsc');
+   +const esbuildPluginTsc = require('esbuild-plugin-tsc');
     ...
     esbuild.build({
       ...
       plugins: [
-   +    EsbuildPluginTsc(),
+   +    esbuildPluginTsc(),
+      ],
+    })
+   ```
+
+   Typescript:
+   ```diff
+   +import { esbuildPluginTsc } from 'esbuild-plugin-tsc';
+    ...
+    esbuild.build({
+      ...
+      plugins: [
+   +    esbuildPluginTsc(),
       ],
     })
    ```
@@ -33,7 +46,7 @@ If for some reason you want to use typescripts compiler for all files you can si
 ## Config
 
 ```typescript
-EsbuildPluginTsc{
+esbuildPluginTsc{
     // If empty, uses tsconfig.json
     tsconfigPath?: string,
     // If true, force compilation with tsc
