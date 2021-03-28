@@ -12,14 +12,13 @@ const theFinder = new RegExp(
 const findDecorators = (fileContent) =>
   theFinder.test(stripComments(fileContent));
 
-const esbuildPluginTsc = (options = {}) => ({
+const esbuildPluginTsc = ({
+  tsconfigPath = path.join(process.cwd(), './tsconfig.json'),
+  force: forceTsc = false,
+  tsx = true,
+} = {}) => ({
   name: 'tsc',
   setup(build) {
-    const tsconfigPath =
-      options.tsconfigPath ?? path.join(process.cwd(), './tsconfig.json');
-    const forceTsc = options.force ?? false;
-    const tsx = options.tsx ?? true;
-
     let parsedTsConfig = null;
 
     build.onLoad({ filter: tsx ? /\.tsx?$/ : /\.ts$/ }, async (args) => {
