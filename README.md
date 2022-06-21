@@ -46,7 +46,7 @@ If for some reason you want to use typescripts compiler for all files you can si
 ## Config
 
 ```typescript
-esbuildPluginTsc{
+esbuildPluginTsc({
     // If empty, uses tsconfig.json
     tsconfigPath?: string,
     // If true, force compilation with tsc
