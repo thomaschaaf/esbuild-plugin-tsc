@@ -51,7 +51,10 @@ const esbuildPluginTsc = ({
         return;
       }
 
-      const program = typescript.transpileModule(ts, { compilerOptions: parsedTsConfig.options });
+      const program = typescript.transpileModule(ts, {
+        compilerOptions: parsedTsConfig.options,
+        fileName: path.basename(args.path),
+      });
       return { contents: program.outputText };
     });
   },
