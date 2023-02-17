@@ -24,10 +24,10 @@ const esbuildPluginTsc = ({
     build.onLoad({ filter: tsx ? /\.tsx?$/ : /\.ts$/ }, async (args) => {
       if (!parsedTsConfig) {
         parsedTsConfig = parseTsConfig(tsconfigPath, process.cwd());
-        if (parsedTsConfig.sourcemap) {
-          parsedTsConfig.sourcemap = false;
-          parsedTsConfig.inlineSources = true;
-          parsedTsConfig.inlineSourceMap = true;
+        if (parsedTsConfig.options.sourceMap) {
+          parsedTsConfig.options.sourceMap = false;
+          parsedTsConfig.options.inlineSources = true;
+          parsedTsConfig.options.inlineSourceMap = true;
         }
       }
 
@@ -51,7 +51,10 @@ const esbuildPluginTsc = ({
         return;
       }
 
-      const program = typescript.transpileModule(ts, { compilerOptions: parsedTsConfig.options });
+      const program = typescript.transpileModule(ts, {
+        compilerOptions: parsedTsConfig.options,
+        fileName: path.basename(args.path),
+      });
       return { contents: program.outputText };
     });
   },
