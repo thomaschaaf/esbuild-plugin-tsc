@@ -1,15 +1,16 @@
 {
-  "name": "esbuild-plugin-tsc",
+  "name": "esbuild-plugin-tsc-2",
   "version": "0.3.1",
   "description": "An esbuild plugin which uses tsc to compile typescript files.",
   "main": "src/index.js",
   "types": "./types.d.ts",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "deploy": "np"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/thomaschaaf/esbuild-plugin-tsc.git"
+    "url": "git+https://github.com/KennethWKZ/esbuild-plugin-tsc.git"
   },
   "keywords": [
     "esbuild",
@@ -17,12 +18,12 @@
     "tsc",
     "typescript"
   ],
-  "author": "Thomas Schaaf <schaaf@komola.de>",
+  "author": "Kenneth Wong <kenneth09062004@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/thomaschaaf/esbuild-plugin-tsc/issues"
+    "url": "https://github.com/KennethWKZ/esbuild-plugin-tsc/issues"
   },
-  "homepage": "https://github.com/thomaschaaf/esbuild-plugin-tsc#readme",
+  "homepage": "https://github.com/KennethWKZ/esbuild-plugin-tsc#readme",
   "jest": {
     "verbose": true
   },
@@ -30,9 +31,10 @@
     "strip-comments": "^2.0.1"
   },
   "devDependencies": {
-    "jest": "^28.1.1",
-    "prettier": "^2.7.1",
-    "typescript": "^4.7.4"
+    "jest": "^29.4.3",
+    "np": "^7.6.3",
+    "prettier": "^2.8.4",
+    "typescript": "^4.9.5"
   },
   "peerDependencies": {
     "typescript": "^4.0.0"
