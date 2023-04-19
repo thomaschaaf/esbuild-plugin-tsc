@@ -33,7 +33,7 @@ If for some reason you want to use typescripts compiler for all files you can si
 
    Typescript:
    ```diff
-   +import { esbuildPluginTsc } from 'esbuild-plugin-tsc';
+   +import esbuildPluginTsc from 'esbuild-plugin-tsc';
     ...
     esbuild.build({
       ...
