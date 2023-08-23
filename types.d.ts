@@ -3,6 +3,8 @@ declare function esbuildPluginTsc(options?: {
   tsconfigPath?: string;
   // If true, force compilation with tsc
   force?: boolean;
+  // If true, force TypeScript to treat files without the `.mts` extension as ESM
+  forceEsm?: boolean;
   // If true, enables tsx file support
   tsx?: boolean;
 }): {
