@@ -15,13 +15,14 @@ const findDecorators = (fileContent) =>
 const esbuildPluginTsc = ({
   tsconfigPath = path.join(process.cwd(), './tsconfig.json'),
   force: forceTsc = false,
+  forceEsm = false,
   tsx = true,
 } = {}) => ({
   name: 'tsc',
   setup(build) {
     let parsedTsConfig = null;
 
-    build.onLoad({ filter: tsx ? /\.tsx?$/ : /\.ts$/ }, async (args) => {
+    build.onLoad({ filter: tsx ? /\.m?tsx?$/ : /\.m?ts$/ }, async (args) => {
       if (!parsedTsConfig) {
         parsedTsConfig = parseTsConfig(tsconfigPath, process.cwd());
         if (parsedTsConfig.options.sourceMap) {
@@ -51,9 +52,16 @@ const esbuildPluginTsc = ({
         return;
       }
 
+      const extname = path.extname(args.path);
+      const basename = path.basename(args.path, extname);
+
+      let fileName = forceEsm
+        ? `${basename}${extname.replace('.ts', '.mts')}`
+        : `${basename}${extname}`;
+
       const program = typescript.transpileModule(ts, {
         compilerOptions: parsedTsConfig.options,
-        fileName: path.basename(args.path),
+        fileName,
       });
       return { contents: program.outputText };
     });
